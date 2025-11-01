@@ -416,10 +416,10 @@
 <body>
 
     <audio id="alarm-sound" loop>
-        <source src="mixkit-warning-alarm-buzzer-991.wav" type="audio/wav">
+        <source src="data:audio/wav;base64,UklGRigBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAAABAAgAZGF0YQQBAAD//f/9/+3/6//q/+v/7v/t/+z/6v/q/+z/7v/v/+4A8ADvAPAA7gDwAPAA7gDxAPIA8gDxAPIA8QDwAPAA8ADwAPAA8ADvAPAA8ADvAO8A7wDuAO8A8ADwAO4A7wDvAO4A7gDtAO4A7QDtAO0A6wDtAO0A6wDrAOwA6wDsAOsA6gDqAOoA6gDqAOoA6QDqAOoA6QDrAOkA6QDoAOgA6ADoAOgA5wDoAOgA5wDnAOYA5gDm/+YA5gDm/+YA5gDlAOYA5QDIAMgAyADHAMYAxQDGAMUAwQDBAMIAwgC//8IAwgC//8EAwgDBAIIAwgCCAMEAggDCAMEAggDCAMEA/AD+APwA/AD8APwA+wD7APsA+wD6APsA+QD6APkA+QD5APgA+AD4APgA+AD3APgA9wD3APYA9gD2APYA9QD2APUA9QD1APMA9ADzAPMA8wDyAPMA8gDyAPIA8QDyAPEA8QDxAPEA8QDxAPAA8ADwAPAA8ADwAPAA7wDwAO8A7wDvAO8A7wDuAO8A7gDuAO4A7QDuAO0A7QDtAOwA7QDsAOwA7ADqAOwA6gDqAOoA6gDqAOkA6gDpAOkA6QDpAOYA6ADnAOYA5gDmAOYA5gDm/+YA5gDl/+YA5QDlAOQAyADJAMcAyADGAMUAxgDFAH8AwgDBAH8AfwB/AH8AfwB/AH8AfwB/AH8AfwB/AH8AfwB/AH8AfwB/AH8AfwB/AH8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD+AP8A/gD/AP4A/gD9APsA+wD7APoA+QD5APkA+AD3APgA9wD3APYA9gD2APUA9QDzAPUA8wDzAPMA8gDyAPIA8QDyAPEA8QDxAPAA8ADwAO8A8ADvAO8A7wDuAO8A7gDuAO4A7QDuAO0A7QDsAO0A7ADqAOwA6gDqAOoA6gDpAOoA6QDpAOgA6QDnAOgA5wDmAOgA5gDm/+YA5gDm/+YA5QDlAOQA5QDIAMgAyADHAMYAxQDGAMUAwQDBAMIAwgC//8IAwgC//8EAwgDBAIIAwgCCAMEAggDCAMEAggDCAMEA/AD+APwA/AD8APwA+wD7APsA+wDREALIGNk" type="audio/wav">
     </audio>
-    <audio id="beep-sound">
-        <source src="data:audio/wav;base64,UklGRkYAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YVQAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA==" type="audio/wav">
+    <audio id="stopwatch-sound">
+        <source src="data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAAABAAgAZGF0YRIBAACAgICAgICA/4D/gP+A/4D/gICAgICAgICAAAA=" type="audio/wav">
     </audio>
 
 
@@ -515,10 +515,17 @@
                 </div>
 
                 <div id="alarm-status" class="alarm-status">No alarm set.</div>
-                <div class="feature-controls">
+                
+                <div id="alarm-set-controls" class="feature-controls">
                     <button id="alarm-set" class="btn-action">Set Alarm</button>
                     <button id="alarm-clear" class="btn-neutral">Clear</button>
                 </div>
+                
+                <div id="alarm-active-controls" class="feature-controls hidden">
+                    <button id="alarm-snooze" class="btn-action">Snooze (5 min)</button>
+                    <button id="alarm-stop" class="btn-danger">Stop</button>
+                </div>
+
             </div>
         </section>
 
@@ -633,12 +640,15 @@
             const clock = new ProgressClock("#clock");
 
             // --- 2. AUDIO ELEMENTS & BEEP FUNCTION ---
+            // *** JAVASCRIPT CHANGE 1: Select new IDs ***
             const alarmSound = document.getElementById('alarm-sound');
-            const beepSound = document.getElementById('beep-sound');
+            const stopwatchSound = document.getElementById('stopwatch-sound');
             
+            // *** JAVASCRIPT CHANGE 2: Renamed function and changed sound ***
+            // This function now plays the button click/beep sound
             function playBeep() {
-                beepSound.currentTime = 0; 
-                beepSound.play();
+                stopwatchSound.currentTime = 0; 
+                stopwatchSound.play();
             }
 
             // --- 3. PAGE NAVIGATION LOGIC ---
@@ -666,7 +676,8 @@
             });
 
 
-            // --- 4. STOPWATCH LOGIC (Unchanged) ---
+            // --- 4. STOPWATCH LOGIC ---
+            // Unchanged, but calls to playBeep() now use the new sound
             const stopwatchDisplay = document.getElementById('stopwatch-display');
             const startBtn = document.getElementById('stopwatch-start');
             const stopBtn = document.getElementById('stopwatch-stop');
@@ -722,7 +733,7 @@
             }
 
             startBtn.addEventListener('click', async () => {
-                playBeep();
+                playBeep(); // Plays the new stopwatch click sound
                 if (Notification.permission === 'default') {
                     await Notification.requestPermission();
                 }
@@ -730,32 +741,36 @@
             });
 
             stopBtn.addEventListener('click', () => {
-                playBeep();
+                playBeep(); // Plays the new stopwatch click sound
                 stopStopwatch();
             });
 
             resetBtn.addEventListener('click', () => {
-                playBeep();
+                playBeep(); // Plays the new stopwatch click sound
                 resetStopwatch();
             });
 
 
-            // --- 5. ALARM LOGIC (HEAVILY UPDATED) ---
+            // --- 5. ALARM LOGIC ---
+            // Unchanged, but calls to playBeep() now use the new sound
             const setAlarmBtn = document.getElementById('alarm-set');
             const clearAlarmBtn = document.getElementById('alarm-clear');
             const alarmInput = document.getElementById('alarm-time-input');
             const alarmStatus = document.getElementById('alarm-status');
             const alarmTypeRadios = document.querySelectorAll('input[name="alarm-type"]');
             const alarmDaysSelector = document.getElementById('alarm-days-selector');
+            const alarmSetControls = document.getElementById('alarm-set-controls');
+            const alarmActiveControls = document.getElementById('alarm-active-controls');
+            const snoozeBtn = document.getElementById('alarm-snooze');
+            const stopBtn_Alarm = document.getElementById('alarm-stop'); 
             
-            // Global alarm state variables
             let alarmTime = null;
             let alarmType = 'once';
             let alarmDays = [];
             let hasAlarmFiredToday = false;
-            let lastCheckedDay = -1; // To track when the day changes
+            let lastCheckedDay = -1; 
+            let alarmStatusMessage = 'No alarm set.';
 
-            // Show/hide day selector based on radio button
             alarmTypeRadios.forEach(radio => {
                 radio.addEventListener('change', () => {
                     if (radio.value === 'specific') {
@@ -766,11 +781,13 @@
                 });
             });
 
-            // Function to fire the alarm
             function fireAlarm() {
-                alarmSound.play();
+                alarmSound.play(); // Plays the new, loud alarm sound
                 document.body.classList.add('alarm-active');
                 alarmStatus.innerText = 'ALARM! WAKE UP!';
+                
+                alarmSetControls.classList.add('hidden');
+                alarmActiveControls.classList.remove('hidden');
                 
                 if (Notification.permission === 'granted') {
                     new Notification('SibaTimeX Alarm', {
@@ -779,43 +796,82 @@
                 }
             }
 
-            // Function to clear the alarm (called by button or 'once' logic)
             function clearAlarmLogic() {
-                alarmTime = null; // Disarm the alarm
+                alarmTime = null;
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
                 document.body.classList.remove('alarm-active');
-                alarmStatus.innerText = 'No alarm set.';
+                
+                alarmStatusMessage = 'No alarm set.'; 
+                alarmStatus.innerText = alarmStatusMessage;
                 hasAlarmFiredToday = false;
+
+                alarmSetControls.classList.remove('hidden');
+                alarmActiveControls.classList.add('hidden');
             }
 
-            // This function runs every second to check if the alarm should go off
-            function checkAlarm() {
-                // 1. If no alarm is set, do nothing.
-                if (!alarmTime) return;
+            function stopRingingAlarm() {
+                playBeep(); // Plays the click sound
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+                document.body.classList.remove('alarm-active');
+                
+                alarmSetControls.classList.remove('hidden');
+                alarmActiveControls.classList.add('hidden');
+                
+                if (alarmType === 'once') {
+                    alarmTime = null; 
+                    alarmStatusMessage = 'Alarm finished.';
+                }
+                
+                alarmStatus.innerText = alarmStatusMessage;
+            }
 
-                // 2. If alarm is already ringing, do nothing.
+            function snoozeAlarm() {
+                playBeep(); // Plays the click sound
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+                document.body.classList.remove('alarm-active');
+
+                alarmSetControls.classList.remove('hidden');
+                alarmActiveControls.classList.add('hidden');
+                
+                const snoozeMinutes = 5;
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + snoozeMinutes);
+                
+                const snoozeH = now.getHours();
+                const snoozeM = now.getMinutes();
+                
+                alarmTime = `${snoozeH < 10 ? '0' : ''}${snoozeH}:${snoozeM < 10 ? '0' : ''}${snoozeM}`;
+                alarmType = 'once';
+                hasAlarmFiredToday = false; 
+                lastCheckedDay = now.getDay();
+                
+                const displayTime = now.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+                alarmStatusMessage = `Snoozed until ${displayTime}`;
+                alarmStatus.innerText = alarmStatusMessage;
+            }
+
+            function checkAlarm() {
+                if (!alarmTime) return;
                 if (document.body.classList.contains('alarm-active')) return;
                 
                 const now = new Date();
                 
-                // 3. Check if the day has changed to reset the "fired" flag
                 const currentDay = now.getDay();
                 if (currentDay !== lastCheckedDay) {
                     hasAlarmFiredToday = false;
                     lastCheckedDay = currentDay;
                 }
                 
-                // 4. If it has already fired today, do nothing.
                 if (hasAlarmFiredToday) return;
 
-                // 5. Check if the time matches
                 const [alarmHours, alarmMinutes] = alarmTime.split(':');
                 const timeMatches = now.getHours() == alarmHours && now.getMinutes() == alarmMinutes;
 
                 if (!timeMatches) return;
                 
-                // 6. If time matches, check if it should fire based on type
                 let shouldFire = false;
                 
                 if (alarmType === 'once') {
@@ -828,29 +884,19 @@
                     }
                 }
                 
-                // 7. Fire the alarm!
                 if (shouldFire) {
                     fireAlarm();
                     hasAlarmFiredToday = true;
-                    
-                    // If it's a "once" alarm, clear it after it fires
-                    if (alarmType === 'once') {
-                        alarmTime = null; // Disarm
-                        alarmStatus.innerText = 'Alarm finished.';
-                    }
                 }
             }
 
-            // Set Alarm Button
             setAlarmBtn.addEventListener('click', async () => {
-                playBeep();
+                playBeep(); // Plays the click sound
                 
-                // Request permission if needed
                 if (Notification.permission === 'default') {
                     await Notification.requestPermission();
                 }
 
-                // Get all settings
                 alarmTime = alarmInput.value;
                 alarmType = document.querySelector('input[name="alarm-type"]:checked').value;
                 alarmDays = [];
@@ -866,31 +912,32 @@
                     
                     if (alarmDays.length === 0) {
                         alarmStatus.innerText = 'Please select at least one day.';
-                        alarmTime = null; // Don't set the alarm
+                        alarmTime = null; 
                         return;
                     }
                     typeString = selectedDays.join(', ');
                 }
                 
-                // Arm the alarm
-                hasAlarmFiredToday = false; // Allow re-setting for today
-                lastCheckedDay = new Date().getDay(); // Set check day
+                hasAlarmFiredToday = false; 
+                lastCheckedDay = new Date().getDay(); 
                 
-                // Convert 13:00 to 1:00 PM for display
                 const [h, m] = alarmTime.split(':');
                 const displayTime = new Date(0, 0, 0, h, m).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
                 
-                alarmStatus.innerText = `Alarm set for ${displayTime} (${typeString})`;
+                alarmStatusMessage = `Alarm set for ${displayTime} (${typeString})`;
+                alarmStatus.innerText = alarmStatusMessage;
             });
 
-            // Clear Alarm Button
             clearAlarmBtn.addEventListener('click', () => {
-                playBeep();
-                clearAlarmLogic(); // Call the shared clear function
+                playBeep(); // Plays the click sound
+                clearAlarmLogic(); 
             });
             
+            snoozeBtn.addEventListener('click', snoozeAlarm);
+            stopBtn_Alarm.addEventListener('click', stopRingingAlarm);
+
+            
             // --- START THE ALARM CHECKER ---
-            // This runs every second, forever, in the background.
             setInterval(checkAlarm, 1000);
 
         });
