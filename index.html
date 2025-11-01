@@ -26,6 +26,8 @@
             --btn-action-2: #00d2d3;
             --btn-neutral-1: #636e72;
             --btn-neutral-2: #b2bec3;
+            --btn-danger-1: #d63031;
+            --btn-danger-2: #ff7675;
             font-size: calc(16px + (24 - 16) * (100vw - 320px) / (1280 - 320));
         }
 
@@ -126,7 +128,7 @@
         }
 
 
-        /* 4. --- CLOCK STYLES --- */
+        /* 4. --- CLOCK STYLES (Unchanged) --- */
         .progress-clock {
             display: grid;
             justify-content: center;
@@ -272,7 +274,7 @@
             color: #ffffff;
             border: none;
             padding: 12px 20px;
-            margin: 0 8px;
+            margin: 0 5px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
@@ -282,37 +284,98 @@
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 0.9em;
         }
+
+        .feature-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            filter: brightness(0.7);
+        }
         
         .btn-action {
             background: linear-gradient(45deg, var(--btn-action-1), var(--btn-action-2));
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, var(--btn-danger-1), var(--btn-danger-2));
         }
         
         .btn-neutral {
             background: linear-gradient(45deg, var(--btn-neutral-1), var(--btn-neutral-2));
         }
         
-        .feature-controls button:hover {
+        .feature-controls button:not(:disabled):hover {
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
             filter: brightness(1.1);
         }
         
-        .feature-controls button:active {
+        .feature-controls button:not(:disabled):active {
             transform: scale(0.98);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
             filter: brightness(0.9);
         }
         
+        /* --- CHANGED: ALARM PAGE STYLES --- */
         #alarm input[type="time"] {
             background-color: #1a2330;
             border: 1px solid var(--accent-glow);
             color: var(--fg);
-            font-size: 1em;
             font-family: 'Orbitron', monospace;
-            width: 180px;
+            width: 240px;
             border-radius: 5px;
             padding: 10px;
+            /* NEW: Make it look like a display */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
+        
+        /* NEW: Styles for Alarm options */
+        .alarm-options {
+            font-size: 0.8em;
+            margin: -10px 0 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .alarm-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .alarm-days {
+            font-size: 0.7em;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: -10px 0 20px 0;
+        }
+
+        .alarm-days label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            background: var(--bg);
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid var(--feature-bg);
+        }
+        
+        .alarm-days label:has(input:checked) {
+             background: var(--btn-action-1);
+             color: #fff;
+        }
+
+        /* Class to hide the days selector */
+        .hidden {
+            display: none !important;
+        }
+
 
         /* 6. --- RESPONSIVENESS --- */
         @media (max-width: 600px) {
@@ -336,6 +399,16 @@
             .feature-controls button {
                 padding: 10px 15px;
                 font-size: 0.8em;
+                margin: 0 3px;
+            }
+            /* Make alarm options stack on small screens */
+            .alarm-options {
+                font-size: 0.7em;
+                gap: 10px;
+            }
+            .alarm-days {
+                font-size: 0.6em;
+                gap: 5px;
             }
         }
     </style>
@@ -414,10 +487,33 @@
 
         <section id="page-alarm" class="page-section">
             <div id="alarm" class="feature-box">
-                <h3>Set Alarm</h3>
+                <h3>⏰ Set Alarm</h3>
                 <div class="feature-display">
                     <input type="time" id="alarm-time-input" value="07:00">
                 </div>
+                
+                <div class="alarm-options">
+                    <label>
+                        <input type="radio" name="alarm-type" value="once" checked> Once
+                    </label>
+                    <label>
+                        <input type="radio" name="alarm-type" value="daily"> Daily
+                    </label>
+                    <label>
+                        <input type="radio" name="alarm-type" value="specific"> Specific Day
+                    </label>
+                </div>
+                
+                <div id="alarm-days-selector" class="alarm-days hidden">
+                    <label><input type="checkbox" name="alarm-day" value="1"> Mon</label>
+                    <label><input type="checkbox" name="alarm-day" value="2"> Tue</label>
+                    <label><input type="checkbox" name="alarm-day" value="3"> Wed</label>
+                    <label><input type="checkbox" name="alarm-day" value="4"> Thu</label>
+                    <label><input type="checkbox" name="alarm-day" value="5"> Fri</label>
+                    <label><input type="checkbox" name="alarm-day" value="6"> Sat</label>
+                    <label><input type="checkbox" name="alarm-day" value="0"> Sun</label>
+                </div>
+
                 <div id="alarm-status" class="alarm-status">No alarm set.</div>
                 <div class="feature-controls">
                     <button id="alarm-set" class="btn-action">Set Alarm</button>
@@ -432,6 +528,7 @@
                 <div id="stopwatch-display" class="feature-display">00:00.00</div>
                 <div class="feature-controls">
                     <button id="stopwatch-start" class="btn-action">Start</button>
+                    <button id="stopwatch-stop" class="btn-danger">Stop</button>
                     <button id="stopwatch-reset" class="btn-neutral">Reset</button>
                 </div>
             </div>
@@ -569,14 +666,17 @@
             });
 
 
-            // --- 4. STOPWATCH LOGIC ---
+            // --- 4. STOPWATCH LOGIC (Unchanged) ---
             const stopwatchDisplay = document.getElementById('stopwatch-display');
             const startBtn = document.getElementById('stopwatch-start');
+            const stopBtn = document.getElementById('stopwatch-stop');
             const resetBtn = document.getElementById('stopwatch-reset');
 
             let startTime;
             let elapsedTime = 0;
             let timerInterval;
+
+            stopBtn.disabled = true;
 
             function formatTime(ms) {
                 let minutes = Math.floor(ms / (1000 * 60));
@@ -596,28 +696,42 @@
                     elapsedTime = Date.now() - startTime;
                     stopwatchDisplay.innerText = formatTime(elapsedTime);
                 }, 10);
-                startBtn.innerText = 'Stop';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
             }
 
             function stopStopwatch() {
                 clearInterval(timerInterval);
-                startBtn.innerText = 'Start';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                
+                if (Notification.permission === 'granted' && elapsedTime > 0) {
+                    const finalTime = stopwatchDisplay.innerText;
+                    new Notification('SibaTimeX Stopwatch', {
+                        body: `Stopwatch paused at ${finalTime}`
+                    });
+                }
             }
 
             function resetStopwatch() {
                 clearInterval(timerInterval);
                 elapsedTime = 0;
                 stopwatchDisplay.innerText = '00:00.00';
-                startBtn.innerText = 'Start';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
             }
 
-            startBtn.addEventListener('click', () => {
+            startBtn.addEventListener('click', async () => {
                 playBeep();
-                if (startBtn.innerText === 'Start') {
-                    startStopwatch();
-                } else {
-                    stopStopwatch();
+                if (Notification.permission === 'default') {
+                    await Notification.requestPermission();
                 }
+                startStopwatch();
+            });
+
+            stopBtn.addEventListener('click', () => {
+                playBeep();
+                stopStopwatch();
             });
 
             resetBtn.addEventListener('click', () => {
@@ -626,62 +740,159 @@
             });
 
 
-            // --- 5. ALARM LOGIC ---
+            // --- 5. ALARM LOGIC (HEAVILY UPDATED) ---
             const setAlarmBtn = document.getElementById('alarm-set');
             const clearAlarmBtn = document.getElementById('alarm-clear');
             const alarmInput = document.getElementById('alarm-time-input');
             const alarmStatus = document.getElementById('alarm-status');
-            let alarmTimeout;
+            const alarmTypeRadios = document.querySelectorAll('input[name="alarm-type"]');
+            const alarmDaysSelector = document.getElementById('alarm-days-selector');
+            
+            // Global alarm state variables
+            let alarmTime = null;
+            let alarmType = 'once';
+            let alarmDays = [];
+            let hasAlarmFiredToday = false;
+            let lastCheckedDay = -1; // To track when the day changes
 
-            setAlarmBtn.addEventListener('click', () => {
-                playBeep();
-                const alarmTime = alarmInput.value;
-                if (!alarmTime) {
-                    alert('Please set a valid time for the alarm.');
-                    return;
-                }
-
-                const [hours, minutes] = alarmTime.split(':');
-                const now = new Date();
-                
-                let alarmDate = new Date();
-                alarmDate.setHours(hours);
-                alarmDate.setMinutes(minutes);
-                alarmDate.setSeconds(0);
-                alarmDate.setMilliseconds(0);
-
-                if (alarmDate <= now) {
-                    alarmDate.setDate(alarmDate.getDate() + 1);
-                }
-
-                const timeToAlarm = alarmDate.getTime() - now.getTime();
-
-                if (alarmTimeout) {
-                    clearTimeout(alarmTimeout);
-                }
-
-                alarmTimeout = setTimeout(() => {
-                    alarmSound.play();
-                    document.body.classList.add('alarm-active');
-                    alarmStatus.innerText = 'ALARM! WAKE UP!';
-                }, timeToAlarm);
-
-                alarmStatus.innerText = `Alarm set for ${alarmDate.toLocaleTimeString()}`;
+            // Show/hide day selector based on radio button
+            alarmTypeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'specific') {
+                        alarmDaysSelector.classList.remove('hidden');
+                    } else {
+                        alarmDaysSelector.classList.add('hidden');
+                    }
+                });
             });
 
-            clearAlarmBtn.addEventListener('click', () => {
-                playBeep();
+            // Function to fire the alarm
+            function fireAlarm() {
+                alarmSound.play();
+                document.body.classList.add('alarm-active');
+                alarmStatus.innerText = 'ALARM! WAKE UP!';
                 
-                if (alarmTimeout) {
-                    clearTimeout(alarmTimeout);
+                if (Notification.permission === 'granted') {
+                    new Notification('SibaTimeX Alarm', {
+                        body: 'Time to wake up!'
+                    });
                 }
-                
+            }
+
+            // Function to clear the alarm (called by button or 'once' logic)
+            function clearAlarmLogic() {
+                alarmTime = null; // Disarm the alarm
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
                 document.body.classList.remove('alarm-active');
-                
                 alarmStatus.innerText = 'No alarm set.';
+                hasAlarmFiredToday = false;
+            }
+
+            // This function runs every second to check if the alarm should go off
+            function checkAlarm() {
+                // 1. If no alarm is set, do nothing.
+                if (!alarmTime) return;
+
+                // 2. If alarm is already ringing, do nothing.
+                if (document.body.classList.contains('alarm-active')) return;
+                
+                const now = new Date();
+                
+                // 3. Check if the day has changed to reset the "fired" flag
+                const currentDay = now.getDay();
+                if (currentDay !== lastCheckedDay) {
+                    hasAlarmFiredToday = false;
+                    lastCheckedDay = currentDay;
+                }
+                
+                // 4. If it has already fired today, do nothing.
+                if (hasAlarmFiredToday) return;
+
+                // 5. Check if the time matches
+                const [alarmHours, alarmMinutes] = alarmTime.split(':');
+                const timeMatches = now.getHours() == alarmHours && now.getMinutes() == alarmMinutes;
+
+                if (!timeMatches) return;
+                
+                // 6. If time matches, check if it should fire based on type
+                let shouldFire = false;
+                
+                if (alarmType === 'once') {
+                    shouldFire = true;
+                } else if (alarmType === 'daily') {
+                    shouldFire = true;
+                } else if (alarmType === 'specific') {
+                    if (alarmDays.includes(currentDay)) {
+                        shouldFire = true;
+                    }
+                }
+                
+                // 7. Fire the alarm!
+                if (shouldFire) {
+                    fireAlarm();
+                    hasAlarmFiredToday = true;
+                    
+                    // If it's a "once" alarm, clear it after it fires
+                    if (alarmType === 'once') {
+                        alarmTime = null; // Disarm
+                        alarmStatus.innerText = 'Alarm finished.';
+                    }
+                }
+            }
+
+            // Set Alarm Button
+            setAlarmBtn.addEventListener('click', async () => {
+                playBeep();
+                
+                // Request permission if needed
+                if (Notification.permission === 'default') {
+                    await Notification.requestPermission();
+                }
+
+                // Get all settings
+                alarmTime = alarmInput.value;
+                alarmType = document.querySelector('input[name="alarm-type"]:checked').value;
+                alarmDays = [];
+                
+                let typeString = alarmType;
+
+                if (alarmType === 'specific') {
+                    const selectedDays = [];
+                    document.querySelectorAll('input[name="alarm-day"]:checked').forEach(day => {
+                        alarmDays.push(parseInt(day.value));
+                        selectedDays.push(day.parentElement.innerText.trim());
+                    });
+                    
+                    if (alarmDays.length === 0) {
+                        alarmStatus.innerText = 'Please select at least one day.';
+                        alarmTime = null; // Don't set the alarm
+                        return;
+                    }
+                    typeString = selectedDays.join(', ');
+                }
+                
+                // Arm the alarm
+                hasAlarmFiredToday = false; // Allow re-setting for today
+                lastCheckedDay = new Date().getDay(); // Set check day
+                
+                // Convert 13:00 to 1:00 PM for display
+                const [h, m] = alarmTime.split(':');
+                const displayTime = new Date(0, 0, 0, h, m).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+                
+                alarmStatus.innerText = `Alarm set for ${displayTime} (${typeString})`;
             });
+
+            // Clear Alarm Button
+            clearAlarmBtn.addEventListener('click', () => {
+                playBeep();
+                clearAlarmLogic(); // Call the shared clear function
+            });
+            
+            // --- START THE ALARM CHECKER ---
+            // This runs every second, forever, in the background.
+            setInterval(checkAlarm, 1000);
+
         });
     </script>
 </body>
