@@ -319,7 +319,7 @@
             filter: brightness(0.9);
         }
         
-        /* --- ALARM PAGE STYLES (Unchanged) --- */
+        /* --- CHANGED: ALARM PAGE STYLES --- */
         #alarm input[type="time"] {
             background-color: #1a2330;
             border: 1px solid var(--accent-glow);
@@ -328,9 +328,11 @@
             width: 240px;
             border-radius: 5px;
             padding: 10px;
+            /* NEW: Make it look like a display */
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
         
+        /* NEW: Styles for Alarm options */
         .alarm-options {
             font-size: 0.8em;
             margin: -10px 0 20px 0;
@@ -371,12 +373,13 @@
              color: #fff;
         }
 
+        /* Class to hide the days selector */
         .hidden {
             display: none !important;
         }
 
 
-        /* 6. --- RESPONSIVENESS (Unchanged) --- */
+        /* 6. --- RESPONSIVENESS --- */
         @media (max-width: 600px) {
             .site-header {
                 padding: 15px;
@@ -400,6 +403,7 @@
                 font-size: 0.8em;
                 margin: 0 3px;
             }
+            /* Make alarm options stack on small screens */
             .alarm-options {
                 font-size: 0.7em;
                 gap: 10px;
@@ -638,21 +642,26 @@
             const clock = new ProgressClock("#clock");
 
             // --- 2. AUDIO ELEMENTS & BEEP FUNCTION ---
-            // (Unchanged - your robust version is good)
             const alarmSound = document.getElementById('alarm-sound');
             const stopwatchSound = document.getElementById('stopwatch-sound');
             
+            // *** JAVASCRIPT CHANGE 1: Made playBeep() robust to errors ***
+            // This function now handles errors from .play() so it doesn't stop
+            // the rest of the button's code from running in the WebView.
             function playBeep() {
                 try {
                     stopwatchSound.currentTime = 0;
+                    // .play() returns a promise, which can be rejected.
                     const playPromise = stopwatchSound.play();
                     
                     if (playPromise !== undefined) {
                         playPromise.catch(error => {
+                            // Log the error for debugging, but don't stop the app
                             console.error("Beep sound playback failed:", error);
                         });
                     }
                 } catch (error) {
+                    // Catch any other synchronous errors
                     console.error("playBeep function failed:", error);
                 }
             }
@@ -684,7 +693,7 @@
 
 
             // --- 4. STOPWATCH LOGIC ---
-            // (Unchanged - your robust version is good)
+            // (Mostly Unchanged)
             const stopwatchDisplay = document.getElementById('stopwatch-display');
             const startBtn = document.getElementById('stopwatch-start');
             const stopBtn = document.getElementById('stopwatch-stop');
@@ -723,6 +732,8 @@
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
                 
+                // This notification will likely also fail, but it's inside an 'if'
+                // so it's safer. We already handled the permission request.
                 if (Notification.permission === 'granted' && elapsedTime > 0) {
                     const finalTime = stopwatchDisplay.innerText;
                     new Notification('SibaTimeX Stopwatch', {
@@ -738,31 +749,40 @@
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
             }
-            
+
+            // *** JAVASCRIPT CHANGE 2: Made 'Start' button robust ***
             startBtn.addEventListener('click', async () => {
-                playBeep();
+                playBeep(); // This is now safe
+                
                 try {
+                    // Try to get permission, but don't stop if it fails
                     if (window.Notification && Notification.permission === 'default') {
                         await Notification.requestPermission();
                     }
                 } catch (error) {
                     console.error("Notification.requestPermission() failed:", error);
+                    // Continue anyway
                 }
+                
+                // This code will NOW run even if notifications fail
                 startStopwatch();
             });
 
             stopBtn.addEventListener('click', () => {
-                playBeep(); 
+                playBeep(); // This is now safe
                 stopStopwatch();
             });
 
             resetBtn.addEventListener('click', () => {
-                playBeep(); 
+                playBeep(); // This is now safe
+                // This button was failing because playBeep() was failing.
+                // It should now work.
                 resetStopwatch();
             });
 
 
-            // --- 5. ALARM LOGIC (*** CHANGED ***) ---
+            // --- 5. ALARM LOGIC ---
+            // (Mostly Unchanged)
             const setAlarmBtn = document.getElementById('alarm-set');
             const clearAlarmBtn = document.getElementById('alarm-clear');
             const alarmInput = document.getElementById('alarm-time-input');
@@ -774,14 +794,11 @@
             const snoozeBtn = document.getElementById('alarm-snooze');
             const stopBtn_Alarm = document.getElementById('alarm-stop'); 
             
-            // *** NEW: Using a full Date object for the next alarm ***
-            let nextAlarmDateTime = null; 
-            
-            // *** Storing these to recalculate repeating alarms ***
-            let alarmTimeInputString = null;
+            let alarmTime = null;
             let alarmType = 'once';
             let alarmDays = [];
-            
+            let hasAlarmFiredToday = false;
+            let lastCheckedDay = -1; 
             let alarmStatusMessage = 'No alarm set.';
 
             alarmTypeRadios.forEach(radio => {
@@ -793,88 +810,9 @@
                     }
                 });
             });
-            
-            // *** NEW: Helper function to calculate the *next* valid alarm time ***
-            function calculateAndSetNextAlarm() {
-                const [hours, minutes] = alarmTimeInputString.split(':').map(Number);
-                
-                let now = new Date();
-                let nextAlarm = new Date();
-                nextAlarm.setHours(hours, minutes, 0, 0); // Set for today
-                
-                if (alarmType === 'once') {
-                    if (nextAlarm <= now) { // If time is already past today
-                        nextAlarm.setDate(nextAlarm.getDate() + 1); // Set for tomorrow
-                    }
-                } else if (alarmType === 'daily') {
-                    if (nextAlarm <= now) {
-                        nextAlarm.setDate(nextAlarm.getDate() + 1);
-                    }
-                } else if (alarmType === 'specific') {
-                    if (alarmDays.length === 0) {
-                        nextAlarmDateTime = null; // No valid day
-                        return;
-                    }
-                    
-                    let currentDay = now.getDay(); // 0 = Sunday, 1 = Monday...
-                    let foundNextDay = false;
-                    
-                    for (let i = 0; i <= 7; i++) {
-                        let testDay = (currentDay + i) % 7;
-                        
-                        if (alarmDays.includes(testDay)) {
-                            let potentialAlarm = new Date();
-                            potentialAlarm.setDate(potentialAlarm.getDate() + i);
-                            potentialAlarm.setHours(hours, minutes, 0, 0);
-                            
-                            if (potentialAlarm > now) { // Found the *next* valid time
-                                nextAlarm = potentialAlarm;
-                                foundNextDay = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!foundNextDay) { // e.g., only day is today, but time past
-                         for (let i = 0; i <= 7; i++) {
-                            let testDay = (currentDay + i + 1) % 7; // Start check from tomorrow
-                            if (alarmDays.includes(testDay)) {
-                                nextAlarm.setDate(nextAlarm.getDate() + i + 1);
-                                nextAlarm.setHours(hours, minutes, 0, 0);
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                nextAlarmDateTime = nextAlarm;
-                
-                // Update status message
-                const displayTime = nextAlarmDateTime.toLocaleString([], {
-                    weekday: (alarmType === 'specific' || alarmType === 'once') ? 'short' : undefined,
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric', 
-                    minute: '2-digit'
-                });
-                alarmStatusMessage = `Alarm set for ${displayTime}`;
-                alarmStatus.innerText = alarmStatusMessage;
-            }
-
 
             function fireAlarm() {
-                // *** CHANGED: Reschedule or clear the alarm *first* ***
-                // This prevents it from firing 1000x times in one second
-                if (alarmType === 'once') {
-                    nextAlarmDateTime = null; 
-                    alarmTimeInputString = null;
-                    alarmStatusMessage = 'Alarm finished.';
-                } else {
-                    // Reschedule for the next day/week
-                    calculateAndSetNextAlarm(); 
-                }
-                
-                // Now, show the active alarm
-                alarmSound.play(); // Will only work if app is in foreground
+                alarmSound.play(); 
                 document.body.classList.add('alarm-active');
                 alarmStatus.innerText = 'ALARM! WAKE UP!';
                 
@@ -882,32 +820,28 @@
                 alarmActiveControls.classList.remove('hidden');
                 
                 if (Notification.permission === 'granted') {
-                    // This notification is the *only* thing that works from background
                     new Notification('SibaTimeX Alarm', {
-                        body: 'Time to wake up!',
-                        requireInteraction: true // Keeps it visible on some platforms
+                        body: 'Time to wake up!'
                     });
                 }
             }
 
             function clearAlarmLogic() {
-                // *** CHANGED: Clear the new variable ***
-                nextAlarmDateTime = null;
-                alarmTimeInputString = null;
-                
+                alarmTime = null;
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
                 document.body.classList.remove('alarm-active');
                 
                 alarmStatusMessage = 'No alarm set.'; 
                 alarmStatus.innerText = alarmStatusMessage;
+                hasAlarmFiredToday = false;
 
                 alarmSetControls.classList.remove('hidden');
                 alarmActiveControls.classList.add('hidden');
             }
 
             function stopRingingAlarm() {
-                playBeep(); 
+                playBeep(); // This is now safe
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
                 document.body.classList.remove('alarm-active');
@@ -915,12 +849,16 @@
                 alarmSetControls.classList.remove('hidden');
                 alarmActiveControls.classList.add('hidden');
                 
-                // Status message was already set by fireAlarm()
+                if (alarmType === 'once') {
+                    alarmTime = null; 
+                    alarmStatusMessage = 'Alarm finished.';
+                }
+                
                 alarmStatus.innerText = alarmStatusMessage;
             }
 
             function snoozeAlarm() {
-                playBeep(); 
+                playBeep(); // This is now safe
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
                 document.body.classList.remove('alarm-active');
@@ -928,72 +866,110 @@
                 alarmSetControls.classList.remove('hidden');
                 alarmActiveControls.classList.add('hidden');
                 
-                // *** CHANGED: Set the nextAlarmDateTime directly ***
                 const snoozeMinutes = 5;
                 const now = new Date();
                 now.setMinutes(now.getMinutes() + snoozeMinutes);
                 
-                nextAlarmDateTime = now; // Set alarm for 5 mins from now
-                alarmType = 'once'; // Snooze is always a one-time alarm
-                alarmTimeInputString = `${now.getHours()}:${now.getMinutes()}`;
+                const snoozeH = now.getHours();
+                const snoozeM = now.getMinutes();
+                
+                alarmTime = `${snoozeH < 10 ? '0' : ''}${snoozeH}:${snoozeM < 10 ? '0' : ''}${snoozeM}`;
+                alarmType = 'once';
+                hasAlarmFiredToday = false; 
+                lastCheckedDay = now.getDay();
                 
                 const displayTime = now.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
                 alarmStatusMessage = `Snoozed until ${displayTime}`;
                 alarmStatus.innerText = alarmStatusMessage;
             }
 
-            // *** CHANGED: Rewritten to be robust against throttling ***
             function checkAlarm() {
-                // If no alarm is set, or if it's already ringing, do nothing
-                if (!nextAlarmDateTime || document.body.classList.contains('alarm-active')) {
-                    return;
-                }
+                if (!alarmTime) return;
+                if (document.body.classList.contains('alarm-active')) return;
                 
                 const now = new Date();
                 
-                // This is the new logic:
-                // Is the current time *after or at* the scheduled alarm time?
-                if (now >= nextAlarmDateTime) {
+                const currentDay = now.getDay();
+                if (currentDay !== lastCheckedDay) {
+                    hasAlarmFiredToday = false;
+                    lastCheckedDay = currentDay;
+                }
+                
+                if (hasAlarmFiredToday) return;
+
+                const [alarmHours, alarmMinutes] = alarmTime.split(':');
+                const timeMatches = now.getHours() == alarmHours && now.getMinutes() == alarmMinutes;
+
+                if (!timeMatches) return;
+                
+                let shouldFire = false;
+                
+                if (alarmType === 'once') {
+                    shouldFire = true;
+                } else if (alarmType === 'daily') {
+                    shouldFire = true;
+                } else if (alarmType === 'specific') {
+                    if (alarmDays.includes(currentDay)) {
+                        shouldFire = true;
+                    }
+                }
+                
+                if (shouldFire) {
                     fireAlarm();
+                    hasAlarmFiredToday = true;
                 }
             }
 
-            // *** CHANGED: 'Set Alarm' listener ***
+            // *** JAVASCRIPT CHANGE 3: Made 'Set Alarm' button robust ***
             setAlarmBtn.addEventListener('click', async () => {
-                playBeep(); 
+                playBeep(); // This is now safe
                 
                 try {
+                    // Try to get permission, but don't stop if it fails
                     if (window.Notification && Notification.permission === 'default') {
                         await Notification.requestPermission();
                     }
                 } catch (error) {
                     console.error("Notification.requestPermission() failed:", error);
+                    // Continue anyway
                 }
 
-                // Store settings in global variables
-                alarmTimeInputString = alarmInput.value;
+                // This code will NOW run even if notifications fail
+                alarmTime = alarmInput.value;
                 alarmType = document.querySelector('input[name="alarm-type"]:checked').value;
                 alarmDays = [];
                 
+                let typeString = alarmType;
+
                 if (alarmType === 'specific') {
+                    const selectedDays = [];
                     document.querySelectorAll('input[name="alarm-day"]:checked').forEach(day => {
                         alarmDays.push(parseInt(day.value));
+                        selectedDays.push(day.parentElement.innerText.trim());
                     });
                     
                     if (alarmDays.length === 0) {
                         alarmStatus.innerText = 'Please select at least one day.';
-                        nextAlarmDateTime = null; 
+                        alarmTime = null; 
                         return;
                     }
+                    typeString = selectedDays.join(', ');
                 }
                 
-                // Calculate and set the next alarm
-                calculateAndSetNextAlarm();
+                hasAlarmFiredToday = false; 
+                lastCheckedDay = new Date().getDay(); 
+                
+                const [h, m] = alarmTime.split(':');
+                const displayTime = new Date(0, 0, 0, h, m).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+                
+                alarmStatusMessage = `Alarm set for ${displayTime} (${typeString})`;
+                alarmStatus.innerText = alarmStatusMessage;
             });
 
-            // *** Unchanged Listeners ***
             clearAlarmBtn.addEventListener('click', () => {
-                playBeep(); 
+                playBeep(); // This is now safe
+                // This button was failing because playBeep() was failing.
+                // It should now work.
                 clearAlarmLogic(); 
             });
             
@@ -1002,7 +978,6 @@
 
             
             // --- START THE ALARM CHECKER ---
-            // (Unchanged) This will now run the robust checkAlarm function
             setInterval(checkAlarm, 1000);
 
         });
