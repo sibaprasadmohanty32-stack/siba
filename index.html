@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SibaTimeX - Precision Timing</title>
+    <title>TimeX - Precision Timing</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Syncopate:wght@700&display=swap" rel="stylesheet">
     
     <style>
         /* 1. --- GLOBAL & ROOT STYLES --- */
@@ -53,13 +53,51 @@
             z-index: 10;
         }
 
+        /* EYE-CATCHING PROJECT NAME STYLES */
         .site-header h1 {
-            font-size: 2.2em;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            color: var(--accent-glow);
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7), 0 0 20px rgba(0, 229, 255, 0.4);
+            font-family: 'Syncopate', sans-serif; /* High-impact modern font */
+            font-size: 2.5em;
+            font-weight: 700;
             margin-bottom: 15px;
+            position: relative;
+            
+            /* High-Contrast Gradient */
+            background: linear-gradient(
+                90deg, 
+                var(--accent-glow) 0%, 
+                #fff 25%, 
+                var(--accent-glow) 50%, 
+                #fff 75%, 
+                var(--accent-glow) 100%
+            );
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            
+            /* Multi-layered animation */
+            animation: 
+                shine 3s linear infinite, 
+                breathing-space 4s ease-in-out infinite alternate;
+            
+            text-transform: uppercase;
+        }
+
+        /* Glint/Scanning effect */
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        /* Cinematic expansion effect */
+        @keyframes breathing-space {
+            from {
+                letter-spacing: 0.1em;
+                text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+            }
+            to {
+                letter-spacing: 0.3em;
+                text-shadow: 0 0 20px rgba(0, 229, 255, 0.9), 0 0 40px rgba(0, 229, 255, 0.3);
+            }
         }
 
         .site-nav ul {
@@ -208,7 +246,7 @@
             transition: color 0.3s ease;
         }
 
-        /* NEW ALARM ANIMATIONS */
+        /* ALARM ANIMATIONS */
         @keyframes alarm-shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -246,7 +284,7 @@
             animation: flash 1s infinite;
         }
 
-        /* 4. --- CLOCK STYLES (Unchanged) --- */
+        /* 4. --- CLOCK STYLES --- */
         .progress-clock {
             display: grid;
             justify-content: center;
@@ -502,7 +540,7 @@
         /* 6. --- RESPONSIVENESS --- */
         @media (max-width: 600px) {
             .site-header { padding: 15px; }
-            .site-header h1 { font-size: 1.8em; margin-bottom: 15px; }
+            .site-header h1 { font-size: 2em; margin-bottom: 15px; }
             .site-nav a { padding: 8px 12px; font-size: 0.9em; }
             .main-content { padding: 20px 10px; }
             .feature-display { font-size: 2em; }
@@ -524,7 +562,7 @@
 
 
     <header class="site-header">
-        <h1>SibaTimeX</h1>
+        <h1>TimeX</h1>
         <nav class="site-nav">
             <ul>
                 <li><a href="#page-clock" class="nav-link active">Clock</a></li>
@@ -717,14 +755,13 @@
                     const temp = Math.round(data.current_weather.temperature);
                     const code = data.current_weather.weathercode;
                     
-                    // Map common weather codes to emojis
                     let icon = "🌡️";
-                    if (code === 0) icon = "☀️"; // Clear
-                    else if (code <= 3) icon = "🌤️"; // Partly cloudy
-                    else if (code <= 48) icon = "🌫️"; // Fog
-                    else if (code <= 67) icon = "🌧️"; // Rain
-                    else if (code <= 77) icon = "❄️"; // Snow
-                    else if (code <= 99) icon = "⛈️"; // Storm
+                    if (code === 0) icon = "☀️";
+                    else if (code <= 3) icon = "🌤️";
+                    else if (code <= 48) icon = "🌫️";
+                    else if (code <= 67) icon = "🌧️";
+                    else if (code <= 77) icon = "❄️";
+                    else if (code <= 99) icon = "⛈️";
 
                     const weatherEl = document.getElementById(`world-weather-${i}`);
                     if (weatherEl) weatherEl.innerHTML = `<span>${icon} ${temp}°C</span>`;
@@ -750,7 +787,7 @@
             const clock = new ProgressClock("#clock");
             initWorldClock();
             setInterval(updateWorldTimes, 1000);
-            setInterval(fetchWeatherData, 600000); // Update weather every 10 mins
+            setInterval(fetchWeatherData, 600000); 
             updateWorldTimes();
 
             const alarmSound = document.getElementById('alarm-sound');
@@ -863,7 +900,7 @@
                 alarmSound.pause(); alarmSound.currentTime = 0;
                 document.body.classList.remove('alarm-active');
                 alarmBox.classList.remove('alarm-firing-animation');
-                setTimeout(fireAlarm, 300000); // 5 mins
+                setTimeout(fireAlarm, 300000); 
                 alarmStatus.innerText = "Snoozed for 5 minutes";
             });
 
